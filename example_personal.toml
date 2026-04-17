@@ -1,0 +1,9 @@
+# ~/.config/git_conf/personal.toml
+# Example profile — copy and edit to create your own
+
+name        = "Priya Sharma"
+email       = "priya@personal.dev"
+ssh_key     = "~/.ssh/id_ed25519_personal"
+github_user = "priya-personal"
+github_url  = "https://github.com/priya-personal"
+notes       = "personal projects"
