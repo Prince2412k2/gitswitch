@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -338,6 +339,38 @@ func PrintApplied(p config.Profile, repoName string) {
 	fmt.Printf("  %s %s\n", label.Render("email"), p.Email)
 	if p.SSHKey != "" {
 		fmt.Printf("  %s %s\n", label.Render("ssh  "), p.SSHKey)
+	}
+	fmt.Println()
+}
+
+// PrintStatus shows the active git identity for the current repo and whether
+// it matches a saved profile.
+func PrintStatus(name, email, sshCmd string, matched *config.Profile, repoRoot string) {
+	repoName := filepath.Base(repoRoot)
+
+	fmt.Println()
+	fmt.Printf("%s  %s\n\n",
+		headerStyle.Render("  gitswitch"),
+		muted.Render("status  /"+repoName),
+	)
+
+	if matched != nil {
+		fmt.Printf("  %s  %s", success.Render("✓"), highlight.Render(matched.Name))
+		if matched.Notes != "" {
+			fmt.Printf("  %s", subtle.Render("("+matched.Notes+")"))
+		}
+		fmt.Println()
+	} else {
+		fmt.Printf("  %s\n", warning.Render("⚠  identity set but matches no saved profile"))
+	}
+
+	fmt.Println()
+	fmt.Printf("  %s %s\n", label.Render("name "), name)
+	fmt.Printf("  %s %s\n", label.Render("email"), email)
+	if sshCmd != "" {
+		fmt.Printf("  %s %s\n", label.Render("ssh  "), muted.Render(sshCmd))
+	} else {
+		fmt.Printf("  %s %s\n", label.Render("ssh  "), muted.Render("(none set)"))
 	}
 	fmt.Println()
 }

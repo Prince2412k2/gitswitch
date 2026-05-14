@@ -17,6 +17,10 @@ func Execute() error {
 		return runNew()
 	case "view", "list", "ls":
 		return runView()
+	case "status", "current", "whoami":
+		return runStatus()
+	case "clone":
+		return runClone(args[1:])
 	case "help", "--help", "-h":
 		printHelp()
 		return nil
@@ -28,14 +32,16 @@ func Execute() error {
 }
 
 func printHelp() {
-	fmt.Println(`
+	fmt.Print(`
   gitswitch — manage git identities per repo
 
   usage:
-    gitswitch           pick a profile and apply it to the current repo
-    gitswitch new       create a new profile interactively
-    gitswitch view      list all saved profiles
-    gitswitch help      show this help
+    gitswitch                   pick a profile and apply it to the current repo
+    gitswitch new               create a new profile interactively
+    gitswitch view              list all saved profiles
+    gitswitch status            show the active identity for the current repo
+    gitswitch clone <url> [dir] clone a repo using a chosen profile's SSH key
+    gitswitch help              show this help
 
   profiles are stored in ~/.config/git_conf/*.toml
 `)

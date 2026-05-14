@@ -15,7 +15,7 @@ func runNew() error {
 
 	result := ui.RunForm()
 	if result.Aborted {
-		fmt.Println("\n  canceled\n")
+		fmt.Print("\n  canceled\n\n")
 		return nil
 	}
 

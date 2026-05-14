@@ -21,7 +21,7 @@ func runSwitch() error {
 		return fmt.Errorf("loading profiles: %w", err)
 	}
 	if len(profiles) == 0 {
-		fmt.Println("\n  no profiles yet — run `gitswitch new` to create one\n")
+		fmt.Print("\n  no profiles yet — run `gitswitch new` to create one\n\n")
 		return nil
 	}
 
@@ -35,7 +35,7 @@ func runSwitch() error {
 
 	result := ui.RunPicker(profiles, repoName)
 	if result.Canceled {
-		fmt.Println("\n  canceled\n")
+		fmt.Print("\n  canceled\n\n")
 		return nil
 	}
 
