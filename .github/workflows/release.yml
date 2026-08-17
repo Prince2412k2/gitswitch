@@ -2,21 +2,73 @@ name: release
 
 on:
   push:
+    branches: [main]
     tags: ["v*"]
   workflow_dispatch:
     inputs:
       tag:
-        description: version to release, e.g. v1
-        required: true
+        description: version to release, e.g. v1.2.0 (blank = bump patch)
+        required: false
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
-  release:
+  version:
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.resolve.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: resolve
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+
+          if [ "$REF_TYPE" = tag ]; then
+            tag=$REF_NAME
+          elif [ -n "$INPUT_TAG" ]; then
+            tag=$INPUT_TAG
+          elif existing=$(git describe --tags --exact-match --match 'v*' HEAD 2>/dev/null); then
+            echo "$GITHUB_SHA is already released as $existing, skipping"
+            echo "tag=" >> "$GITHUB_OUTPUT"
+            exit 0
+          elif git log -1 --pretty=%B | grep -qF '[skip release]'; then
+            echo "commit message asks to skip the release"
+            echo "tag=" >> "$GITHUB_OUTPUT"
+            exit 0
+          else
+            tags=$(git tag --list 'v*' --sort=-v:refname)
+            latest=${tags%%$'\n'*}
+            if [ -z "$latest" ]; then
+              tag=v1.0.0
+            else
+              IFS=. read -r major minor patch <<< "${latest#v}"
+              tag="v${major}.${minor:-0}.$(( ${patch:-0} + 1 ))"
+            fi
+          fi
+
+          echo "releasing as $tag"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+  release:
+    needs: version
+    if: needs.version.outputs.tag != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
     env:
-      TAG: ${{ inputs.tag || github.ref_name }}
+      TAG: ${{ needs.version.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -44,6 +96,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$TAG" dist/* \
-            --target "${{ github.sha }}" \
+            --target "$GITHUB_SHA" \
             --title "$TAG" \
             --generate-notes
