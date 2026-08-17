@@ -11,7 +11,7 @@ Manage multiple git identities. No more committing with your work email on perso
 ## install
 
 ```bash
-git clone https://github.com/you/gitswitch
+git clone https://github.com/Prince2412k2/gitswitch
 cd gitswitch
 go build -o gitswitch .
 mv gitswitch /usr/local/bin/   # or anywhere in your PATH
